@@ -407,6 +407,19 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     private Object getMockValue(Descriptors.FieldDescriptor field) {
         String name = field.getName();
         String type = field.getType().name().toLowerCase();
+
+        // Required to prevent circular proto definitions causing stackoverflows 
+        switch (field.getFullName()) {
+            case "com.daml.ledger.api.v1.RecordField.value":
+            case "com.daml.ledger.api.v1.Variant.value":
+            case "com.daml.ledger.api.v1.List.elements":
+            case "com.daml.ledger.api.v1.Optional.value":
+            case "com.daml.ledger.api.v1.Map.Entry.value":
+            case "com.daml.ledger.api.v1.GenMap.Entry.key":
+            case "com.daml.ledger.api.v1.GenMap.Entry.value":
+                return "complex value";
+        }
+
         if ("message".equals(type)) {
             List<Descriptors.FieldDescriptor> fields = field.getMessageType().getFields();
             JSONObject repeatedField = new JSONObject(true);
